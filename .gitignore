@@ -124,8 +124,7 @@ celerybeat.pid
 .venv
 env/
 */venv/*
-/Users/sanya/Documents/Upekkha/QA-From-Video/venv
-venv/
+/Users/sanya/Documents/Upekkha/QA-From-Video/venv/
 ENV/
 env.bak/
 venv.bak/
