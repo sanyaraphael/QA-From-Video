@@ -125,9 +125,13 @@ celerybeat.pid
 env/
 venv/
 my-env/
+.my-env
 ENV/
 env.bak/
 venv.bak/
+
+#external files
+transcript.txt
 
 # Spyder project settings
 .spyderproject
