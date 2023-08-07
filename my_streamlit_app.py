@@ -12,7 +12,8 @@ import pinecone
 from langchain.schema import Document
 import streamlit as st
 
-
+if 'link' not in st.session_state:
+    st.session_state.link=''
 
 # function which will fetch the youtube transcript
 def download_youtube_transcript(video_url):
@@ -55,19 +56,20 @@ def main():
 	environment=pinecone_env,
     project_name=project_name     
     )      
-    index = pinecone.Index(index_name)
-   
-    print(index_name)
-    # this connects to the Pinecone service, creates or retrieves an index 
+    # index = pinecone.Index(index_name)
+    # indexes = pinecone.list_indexes()
+    # if(indexes[0]!="ask-me-anything"):
+    #     index=pinecone.create_index(name="ask-me-anything",metric = "cosine",dimension=1500)
+    # # this connects to the Pinecone service, creates or retrieves an index 
     # with the given name, vectorizes the input documents, and then inserts them 
     # into the index using the upsert() method.
 
-    docsearch=Pinecone.from_documents([],embedding=OpenAIEmbeddings,index_name=index_name)
+    docsearch=Pinecone.from_documents([],embedding,index_name=index_name)
             
 
     #Dividing the transcript into chunks
-    link=st.text_input(label="Youtube Video Url",placeholder="Paste your youtube video link here")
-   
+    st.text_input(label="Youtube Video Url",placeholder="Paste your youtube video link here",on_change=submit,key="link")
+    link=st.session_state.link;
    
     if link and link !='':
         st.session_state.link='';
@@ -78,26 +80,29 @@ def main():
 
         text_splitter = RecursiveCharacterTextSplitter(chunk_size=2000, chunk_overlap=0)
         # text will consist of chucks to which the text_splitter divided 
-        texts=text_splitter.split_documents(video_transcript)
+        # texts=text_splitter.split_documents(video_transcript)
 
         docs=[]
-        chunks=""
+        texts=' '
     
         start=0
 
         for i in video_transcript:
             if len(texts) >= 2000:
-                docs.append(Document(page_content=chunks,metedata={"start":start,"youtube_link":link, "thumbnail_url": thumbnail_url}))
-                texts=" "       
+                docs.append(Document(page_content=texts,metedata={"start":start,"youtube_link":link, "thumbnail_url": thumbnail_url}))
+                texts=' '       
             else:
                 if texts ==' ':
                     start= int(i['start'])
                 texts =texts+i['text']
+
+            
             #storing docs to pinecone
-            docsearch = Pinecone.from_documents(documents=docs,embedding=embedding, index_name=index)
+            docsearch = Pinecone.from_documents(documents=docs,embedding=embedding, index_name=index_name)
             
             #resetting link to None to avoid the duplicate insert of docs 
             link=None
+        print(len(docs))
     user_question = st.text_input("Ask a question about data:")
     if user_question:
     #do the search to DB
