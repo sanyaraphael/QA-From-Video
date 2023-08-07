@@ -56,7 +56,7 @@ def main():
 	environment=pinecone_env,
     project_name=project_name     
     )      
-    index = pinecone.Index(index_name)
+    # index = pinecone.Index(index_name)
     # indexes = pinecone.list_indexes()
     # if(indexes[0]!="ask-me-anything"):
     #     index=pinecone.create_index(name="ask-me-anything",metric = "cosine",dimension=1500)
@@ -64,7 +64,7 @@ def main():
     # with the given name, vectorizes the input documents, and then inserts them 
     # into the index using the upsert() method.
 
-    docsearch=Pinecone.from_documents([],embedding,index_name=index_name)
+    # docsearch=Pinecone.from_documents([],embedding,index_name=index_name)
             
 
     #Dividing the transcript into chunks
@@ -98,7 +98,6 @@ def main():
 
         #storing docs to pinecone
         docsearch = Pinecone.from_documents(documents=docs,embedding=embedding, index_name=index_name)
-        upsert_response=index.upsert(docs)
         #resetting link to None to avoid the duplicate insert of docs 
         link=None
         print(len(docs))
