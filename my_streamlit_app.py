@@ -62,51 +62,52 @@ def main():
     # with the given name, vectorizes the input documents, and then inserts them 
     # into the index using the upsert() method.
 
-  
+    docsearch=Pinecone.from_documents([],embedding=OpenAIEmbeddings,index_name=index_name)
+            
 
     #Dividing the transcript into chunks
     link=st.text_input(label="Youtube Video Url",placeholder="Paste your youtube video link here")
+   
    
     if link and link !='':
         st.session_state.link='';
         thumbnail_url = YouTube(link).thumbnail_url
         video_id = extract.video_id(link)
-    #getting the transcript from youtube
-    video_transcript=YouTubeTranscriptApi.get_transcript(video_id)
+        #getting the transcript from youtube
+        video_transcript=YouTubeTranscriptApi.get_transcript(video_id)
 
-    text_splitter = RecursiveCharacterTextSplitter(chunk_size=2000, chunk_overlap=0)
-    # text will consist of chucks to which the text_splitter divided 
-    texts=text_splitter.split_documents(video_transcript)
+        text_splitter = RecursiveCharacterTextSplitter(chunk_size=2000, chunk_overlap=0)
+        # text will consist of chucks to which the text_splitter divided 
+        texts=text_splitter.split_documents(video_transcript)
 
-    document=[]
-    chunks=""
-  
-    start=0
+        docs=[]
+        chunks=""
+    
+        start=0
 
-    for i in video_transcript:
-        if len(texts) >= 2000:
-            document.append(Document(page_content=chunks,metedata={"start":start,"youtube_link":link, "thumbnail_url": thumbnail_url}))
-            texts=" "       
-        else:
-            if texts ==' ':
-                start= int(i['start'])
-            texts =texts+i['text']
-        #storing docs to pinecone
-        docsearch = Pinecone.from_documents(documents=document,embedding=embedding, index_name=index)
-        
-        #resetting link to None to avoid the duplicate insert of docs 
-        link=None
-        user_question = st.text_input("Ask a question about data:")
-        if user_question:
-            #do the search to DB
-            docs = docsearch.similarity_search(user_question)
-            llm = OpenAI()
-
-            #load question answer from langchain library
-            chain = load_qa_chain(llm, chain_type="stuff")
-        # get_openai_callback() is used to check the billing info of openai
+        for i in video_transcript:
+            if len(texts) >= 2000:
+                docs.append(Document(page_content=chunks,metedata={"start":start,"youtube_link":link, "thumbnail_url": thumbnail_url}))
+                texts=" "       
+            else:
+                if texts ==' ':
+                    start= int(i['start'])
+                texts =texts+i['text']
+            #storing docs to pinecone
+            docsearch = Pinecone.from_documents(documents=docs,embedding=embedding, index_name=index)
+            
+            #resetting link to None to avoid the duplicate insert of docs 
+            link=None
+    user_question = st.text_input("Ask a question about data:")
+    if user_question:
+    #do the search to DB
+        docs = docsearch.similarity_search(user_question)
+        llm = OpenAI()
+         #load question answer from langchain library
+        chain = load_qa_chain(llm, chain_type="stuff")
+         # get_openai_callback() is used to check the billing info of openai
         with get_openai_callback() as cb:
-            response = chain.run(input_documents=document, question=user_question)
+            response = chain.run(input_documents=docs, question=user_question)
             print(cb)
 
         st.write(response)
@@ -132,8 +133,8 @@ def submit ():
     st.session_state.widget = ""
 
 if __name__ == '__main__':
-    # main()
-    download_youtube_transcript("https://www.youtube.com/watch?v=CaQA2paqZTE")
+     main()
+    # download_youtube_transcript("https://www.youtube.com/watch?v=CaQA2paqZTE")
 
 
 
