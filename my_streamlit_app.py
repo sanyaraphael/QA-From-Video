@@ -72,7 +72,7 @@ def main():
         thumbnail_url = YouTube(link).thumbnail_url
         video_id = extract.video_id(link)
     #getting the transcript from youtube
-    video_transcript=download_youtube_transcript(video_id)
+    video_transcript=YouTubeTranscriptApi.get_transcript(video_id)
 
     text_splitter = RecursiveCharacterTextSplitter(chunk_size=2000, chunk_overlap=0)
     # text will consist of chucks to which the text_splitter divided 
