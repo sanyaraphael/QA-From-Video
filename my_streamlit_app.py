@@ -25,7 +25,7 @@ def download_youtube_transcript(video_url):
         # Combine the transcript into a single string
         transcript_text = ""
         for entry in transcript:
-            transcript_text += entry['text'] + " " +str(entry['start'] )
+            transcript_text += entry['text']
         
         # Write the transcript to a text file
         with open("transcript.txt", "w", encoding="utf-8") as file:
@@ -56,7 +56,7 @@ def main():
 	environment=pinecone_env,
     project_name=project_name     
     )      
-    # index = pinecone.Index(index_name)
+    index = pinecone.Index(index_name)
     # indexes = pinecone.list_indexes()
     # if(indexes[0]!="ask-me-anything"):
     #     index=pinecone.create_index(name="ask-me-anything",metric = "cosine",dimension=1500)
@@ -68,7 +68,7 @@ def main():
             
 
     #Dividing the transcript into chunks
-    st.text_input(label="Youtube Video Url",placeholder="Paste your youtube video link here",on_change=submit,key="link")
+    st.text_input(label="Youtube Video Url",placeholder="Paste your youtube video link here",on_change=submit,key="widget")
     link=st.session_state.link;
    
     if link and link !='':
@@ -77,7 +77,7 @@ def main():
         video_id = extract.video_id(link)
         #getting the transcript from youtube
         video_transcript=YouTubeTranscriptApi.get_transcript(video_id)
-
+        download_youtube_transcript(link)
         text_splitter = RecursiveCharacterTextSplitter(chunk_size=2000, chunk_overlap=0)
         # text will consist of chucks to which the text_splitter divided 
         # texts=text_splitter.split_documents(video_transcript)
@@ -89,19 +89,18 @@ def main():
 
         for i in video_transcript:
             if len(texts) >= 2000:
-                docs.append(Document(page_content=texts,metedata={"start":start,"youtube_link":link, "thumbnail_url": thumbnail_url}))
+                docs.append(Document(page_content=texts,metadata={"start":start,"youtube_link":link, "thumbnail_url": thumbnail_url}))
                 texts=' '       
             else:
                 if texts ==' ':
                     start= int(i['start'])
                 texts =texts+i['text']
 
-            
-            #storing docs to pinecone
-            docsearch = Pinecone.from_documents(documents=docs,embedding=embedding, index_name=index_name)
-            
-            #resetting link to None to avoid the duplicate insert of docs 
-            link=None
+        #storing docs to pinecone
+        docsearch = Pinecone.from_documents(documents=docs,embedding=embedding, index_name=index_name)
+        upsert_response=index.upsert(docs)
+        #resetting link to None to avoid the duplicate insert of docs 
+        link=None
         print(len(docs))
     user_question = st.text_input("Ask a question about data:")
     if user_question:
