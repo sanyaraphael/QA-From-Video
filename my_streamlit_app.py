@@ -124,10 +124,10 @@ def main():
             'start':str(int(float(str(j.metadata['start'])))),
             'thumbnail_url':j.metadata['thumbnail_url']
             }
-        references.append(ref_object)
+            references.append(ref_object)
         st.header ("References") 
         for j in references:
-           st.markdown('<a href="'+str(j['youtube_link' ])+'&t='+str(j['start'])+'">'+str(j['start'])+' <img src='+str(j['thumbnail_url'])+'> <br>' +j['content'],unsafe_allow_html=True)
+           st.markdown('<a href="'+str(j['youtube_link' ])+'&t='+str(j['start'])+'">'+str(j['start'])+' <img width="200" height="100" src="'+str(j['thumbnail_url'])+'"> <br>' +j['content'],unsafe_allow_html=True)
 
 
 # this method called after submit of youtube link
