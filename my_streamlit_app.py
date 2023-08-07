@@ -53,8 +53,7 @@ def main():
     #initialize pinecone
     pinecone.init(      
 	api_key=pinecone_api_key,      
-	environment=pinecone_env,
-    project_name=project_name     
+	environment=pinecone_env   
     )      
     # index = pinecone.Index(index_name)
     # indexes = pinecone.list_indexes()
@@ -64,7 +63,7 @@ def main():
     # with the given name, vectorizes the input documents, and then inserts them 
     # into the index using the upsert() method.
 
-    # docsearch=Pinecone.from_documents([],embedding,index_name=index_name)
+    docsearch=Pinecone.from_documents([],embedding,index_name=index_name)
             
 
     #Dividing the transcript into chunks
@@ -97,15 +96,16 @@ def main():
                 texts =texts+i['text']
 
         #storing docs to pinecone
-        docsearch = Pinecone.from_documents(documents=docs,embedding=embedding, index_name=index_name)
+        st.info(len(docs))
+        docsearch = Pinecone.from_documents(documents=docs,embedding=embedding,index_name=index_name)
         #resetting link to None to avoid the duplicate insert of docs 
         link=None
-        print(len(docs))
+        
     user_question = st.text_input("Ask a question about data:")
     if user_question:
     #do the search to DB
         docs = docsearch.similarity_search(user_question)
-        llm = OpenAI()
+        llm = OpenAI(openai_api_key=openai_api_key)
          #load question answer from langchain library
         chain = load_qa_chain(llm, chain_type="stuff")
          # get_openai_callback() is used to check the billing info of openai
@@ -121,13 +121,13 @@ def main():
             ref_object = {
             'content': content,
             'youtube_link':str(j.metadata['youtube_link']),
-            'start':str(int(float(str(j.metadata['Start'])))),
+            'start':str(int(float(str(j.metadata['start'])))),
             'thumbnail_url':j.metadata['thumbnail_url']
             }
         references.append(ref_object)
         st.header ("References") 
         for j in references:
-           st.markdown('<a href="'+str(j['youtube_link' ])+'&t='+str(j['start'])+'">'+str(j['start'])+'<img style="width: <br>' +j['content'],unsafe_allow_html=True)
+           st.markdown('<a href="'+str(j['youtube_link' ])+'&t='+str(j['start'])+'">'+str(j['start'])+' <img src='+str(j['thumbnail_url'])+'> <br>' +j['content'],unsafe_allow_html=True)
 
 
 # this method called after submit of youtube link
